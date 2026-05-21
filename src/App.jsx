@@ -1,5 +1,5 @@
 // src/App.jsx
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { Routes, Route } from "react-router-dom"
 import HomePage from "./pages/HomePage"
 import ExplorePage from "./pages/ExplorePage"
 import PlaceDetailPage from "./pages/PlaceDetailPage"
@@ -10,7 +10,7 @@ import NavInterceptor from "./components/NavInterceptor"
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <NavInterceptor />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -20,7 +20,7 @@ function App() {
         <Route path="/cities" element={<CitiesPage />} />
         <Route path="/about" element={<AboutPage />} />
       </Routes>
-    </BrowserRouter>
+    </>
   )
 }
 
