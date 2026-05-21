@@ -1,202 +1,144 @@
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { useNavigate } from "react-router-dom"
-import Navbar from "../components/Navbar"
-import BottomNav from "../components/BottomNav"
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const navigate = useNavigate()
+const API_BASE = import.meta.env.VITE_API_URL.replace('/places', '');
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    navigate("/")
-  }
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const inputStyle = {
-    width: "100%",
-    padding: "14px 16px",
-    borderRadius: "12px",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    color: "white",
-    fontSize: "14px",
-    fontFamily: "'Space Grotesk', sans-serif",
-    outline: "none",
-    transition: "all 0.3s ease",
-    marginBottom: "16px"
-  }
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
+    const body =
+      mode === 'login'
+        ? { email: form.email, password: form.password }
+        : { name: form.name, email: form.email, password: form.password };
+
+    try {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        setError(data.message || 'Something went wrong');
+      } else {
+        login(data.user, data.token);
+        navigate('/');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ background: "#0a0a0f", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Navbar />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-100 px-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+        {/* Logo / Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-orange-500">VibeEscape</h1>
+          <p className="text-gray-500 mt-1 text-sm">Discover Rajasthan</p>
+        </div>
 
-      <div style={{
-        flex: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "100px 24px 140px",
-        position: "relative",
-      }}>
+        {/* Toggle */}
+        <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
+          {['login', 'register'].map((m) => (
+            <button
+              key={m}
+              onClick={() => { setMode(m); setError(''); }}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                mode === m
+                  ? 'bg-white shadow text-orange-500'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {m === 'login' ? 'Sign In' : 'Sign Up'}
+            </button>
+          ))}
+        </div>
 
-        <div style={{
-          position: "absolute",
-          width: "300px", height: "300px",
-          background: "radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%)",
-          top: "20%", left: "50%", transform: "translateX(-50%)",
-          filter: "blur(50px)", zIndex: 0
-        }} />
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'register' && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1">Full Name</label>
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Rahul Sharma"
+                required
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
+          )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.05)",
-            borderRadius: "24px",
-            padding: "40px",
-            width: "100%",
-            maxWidth: "400px",
-            zIndex: 10,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.4)"
-          }}
-        >
-          <div style={{ textAlign: "center", marginBottom: "30px" }}>
-            <h1 style={{
-              color: "white",
-              fontSize: "26px",
-              margin: "0 0 8px",
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-            }}>
-              Welcome Back{" "}
-              <span style={{ color: "#a855f7" }}>✦</span>
-            </h1>
-            <p style={{
-              color: "rgba(255,255,255,0.4)",
-              margin: 0,
-              fontSize: "13px",
-              fontFamily: "'Space Grotesk', sans-serif",
-            }}>
-              Enter your details to continue
-            </p>
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              required
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
           </div>
 
-          <form onSubmit={handleLogin}>
-            <div>
-              <label style={{
-                display: "block",
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "12px",
-                marginBottom: "8px",
-                fontWeight: 600,
-                fontFamily: "'Space Grotesk', sans-serif",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}>
-                Email Address
-              </label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                style={inputStyle}
-                onFocus={e => e.target.style.borderColor = "#a855f7"}
-                onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.08)"}
-                required
-              />
-            </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              required
+              minLength={6}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
 
-            <div>
-              <label style={{
-                display: "block",
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "12px",
-                marginBottom: "8px",
-                fontWeight: 600,
-                fontFamily: "'Space Grotesk', sans-serif",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}>
-                Password
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                style={inputStyle}
-                onFocus={e => e.target.style.borderColor = "#a855f7"}
-                onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.08)"}
-                required
-              />
-            </div>
+          {error && (
+            <p className="text-red-500 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
 
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "28px",
-              fontSize: "12px",
-              fontFamily: "'Space Grotesk', sans-serif",
-            }}>
-              <label style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                color: "rgba(255,255,255,0.4)",
-                cursor: "pointer",
-              }}>
-                <input type="checkbox" style={{ accentColor: "#a855f7" }} /> Remember me
-              </label>
-              <span style={{ color: "#c084fc", cursor: "pointer" }}>Forgot password?</span>
-            </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+          </button>
+        </form>
 
-            <button
-              type="submit"
-              style={{
-                width: "100%",
-                padding: "14px",
-                borderRadius: "14px",
-                background: "linear-gradient(135deg, #a855f7, #ec4899)",
-                border: "none",
-                color: "white",
-                fontSize: "14px",
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: "'Space Grotesk', sans-serif",
-                boxShadow: "0 4px 20px rgba(168,85,247,0.25)",
-                transition: "all 0.3s ease",
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
-              onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
-            >
-              Log In
-            </button>
-          </form>
-
-          <p style={{
-            textAlign: "center",
-            color: "rgba(255,255,255,0.35)",
-            marginTop: "24px",
-            fontSize: "13px",
-            fontFamily: "'Space Grotesk', sans-serif",
-          }}>
-            Don't have an account?{" "}
-            <span style={{ color: "#c084fc", fontWeight: 600, cursor: "pointer" }}>Sign up</span>
-          </p>
-        </motion.div>
+        <p className="text-center text-sm text-gray-400 mt-6">
+          <Link to="/" className="text-orange-400 hover:underline">← Back to Home</Link>
+        </p>
       </div>
-
-      <BottomNav />
     </div>
-  )
+  );
 }
-
-export default LoginPage
