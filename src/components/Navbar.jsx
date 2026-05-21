@@ -61,7 +61,6 @@ function Navbar() {
     navigate("/")
   }
 
-  // Get initials from user name for avatar
   const getInitials = (name) => {
     if (!name) return "U"
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
@@ -308,7 +307,6 @@ function Navbar() {
                         e.currentTarget.style.background = "transparent"
                       }}
                     >
-                      {/* Logout icon */}
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                         <path d="M5 12H3a1 1 0 01-1-1V3a1 1 0 011-1h2M9.5 9.5L12 7m0 0L9.5 4.5M12 7H5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
@@ -318,8 +316,9 @@ function Navbar() {
                 )}
               </div>
             ) : (
-              /* ── LOGGED OUT STATE — your original buttons, unchanged ── */
+              /* ── LOGGED OUT STATE ── */
               <>
+                {/* Sign in — goes to login tab */}
                 <button
                   className="hidden md:block nav-btn"
                   onClick={() => navigate("/login")}
@@ -349,9 +348,10 @@ function Navbar() {
                   Sign in
                 </button>
 
+                {/* Get Started — goes to register tab */}
                 <button
                   className="nav-btn"
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/login?mode=register")}
                   style={{
                     background: "linear-gradient(135deg, #a855f7, #ec4899)",
                     border: "none",
@@ -381,7 +381,7 @@ function Navbar() {
               </>
             )}
 
-            {/* Mobile hamburger — unchanged */}
+            {/* Mobile hamburger */}
             <button
               className="md:hidden"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -446,7 +446,6 @@ function Navbar() {
             }}>
               {user ? (
                 <>
-                  {/* Logged-in mobile: show name + email + sign out */}
                   <div style={{
                     display: "flex",
                     alignItems: "center",
@@ -493,8 +492,8 @@ function Navbar() {
                   </button>
                 </>
               ) : (
-                /* Logged-out mobile: sign in + get started */
                 <>
+                  {/* Mobile Sign in — login tab */}
                   <button
                     onClick={() => { navigate("/login"); setMenuOpen(false); }}
                     style={{
@@ -515,8 +514,9 @@ function Navbar() {
                   >
                     Sign in
                   </button>
+                  {/* Mobile Get Started — register tab */}
                   <button
-                    onClick={() => { navigate("/login"); setMenuOpen(false); }}
+                    onClick={() => { navigate("/login?mode=register"); setMenuOpen(false); }}
                     style={{
                       width: "100%",
                       background: "linear-gradient(135deg, #a855f7, #ec4899)",
@@ -542,7 +542,7 @@ function Navbar() {
         )}
       </nav>
 
-      {/* Ambient Glow Blobs — unchanged */}
+      {/* Ambient Glow Blobs */}
       <div style={{
         position: "fixed", top: "-15%", left: "-10%",
         width: "40%", height: "40%", borderRadius: "50%",
